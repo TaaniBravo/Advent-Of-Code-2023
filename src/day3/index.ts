@@ -1,4 +1,4 @@
-import { readFileSync, appendFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
 function isStringANumber(str: string): boolean {
   return !!(str.length && !isNaN(Number(str)));
@@ -31,6 +31,62 @@ function checkRowRangeForSymbol(
   return false;
 }
 
+function checkRowForNumber(
+  row: string,
+  pivot: number,
+  nums: number[],
+): number[] {
+  if (!isStringANumber(row[pivot])) {
+    return checkSidesForNumber(row, pivot - 1, pivot + 1, nums);
+  }
+
+  let window = row[pivot];
+  let left = pivot - 1;
+  let right = pivot + 1;
+  while (left > -1 || right < row.length) {
+    const leftChar = row[left];
+    const rightChar = row[right];
+    if (!isStringANumber(leftChar) && !isStringANumber(rightChar)) break;
+    if (isStringANumber(leftChar)) {
+      window = leftChar + window;
+      left--;
+    }
+    if (isStringANumber(rightChar)) {
+      window += rightChar;
+      right++;
+    }
+  }
+
+  if (isStringANumber(window)) nums.push(parseInt(window));
+
+  return nums;
+}
+
+function checkSidesForNumber(
+  row: string,
+  start: number,
+  end: number,
+  nums: number[],
+): number[] {
+  let leftWindow = "";
+  while (start > -1 && isStringANumber(row[start])) {
+    leftWindow = row[start] + leftWindow;
+    start--;
+  }
+
+  if (isStringANumber(leftWindow)) nums.push(parseInt(leftWindow));
+
+  let rightWindow = "";
+  while (end < row.length && isStringANumber(row[end])) {
+    rightWindow += row[end];
+    end++;
+  }
+
+  if (isStringANumber(rightWindow)) nums.push(parseInt(rightWindow));
+
+  return nums;
+}
+
 function checkSidesForSymbol(row: string, start: number, end: number): boolean {
   if (start && isSymbol(row[start - 1])) return true;
   if (end + 1 < row.length && isSymbol(row[end + 1])) return true;
@@ -38,60 +94,29 @@ function checkSidesForSymbol(row: string, start: number, end: number): boolean {
 }
 
 function main() {
-  const input = readFileSync("./src/day3/demo.txt", "utf8");
+  const input = readFileSync("./src/day3/input.txt", "utf8");
   const lines: string[] = input.split("\n");
   lines.pop();
 
   let answer = 0;
   for (let i = 0; i < lines.length; i++) {
     const row: string = lines[i];
-    let window: string = "";
-    let windowStart: number = 0;
-    let rowSum = 0;
     for (let col = 0; col < row.length; col++) {
-      window += row[col];
-      while (!isStringANumber(window) && windowStart <= col) {
-        window = window.substring(1);
-        windowStart++;
-      }
+      const char = row[col];
+      if (char !== "*") continue;
+      const nums: number[] = [];
+      if (i) checkRowForNumber(lines[i - 1], col, nums);
+      if (i + 1 < lines.length) checkRowForNumber(lines[i + 1], col, nums);
+      checkSidesForNumber(row, col - 1, col + 1, nums);
 
-      if (!isStringANumber(window)) continue;
-      if (col + 1 < row.length && isStringANumber(row[col + 1])) continue;
-
-      let symbolFound: boolean = checkSidesForSymbol(row, windowStart, col);
-      if (i && !symbolFound) {
-        symbolFound = checkRowRangeForSymbol(
-          lines[i - 1], // row above
-          windowStart - 1,
-          col + 2,
-        );
-      }
-      if (i + 1 < lines.length && !symbolFound) {
-        symbolFound = checkRowRangeForSymbol(
-          lines[i + 1], // row below
-          windowStart - 1,
-          col + 2,
-        );
-      }
-
-      if (symbolFound) {
-        appendFileSync(
-          "./src/day3/output2.txt",
-          `Symbol found for: ${window}\n`,
-        );
-        // console.log("Symbol found for:", window, windowStart, col);
-        answer += parseInt(window);
-        rowSum += parseInt(window);
-      }
-
-      window = "";
-      windowStart = col;
+      const total =
+        nums.length > 1 ? nums.reduce((prev, curr) => prev * curr, 1) : 0;
+      console.log("Row: ", i, "Col:", col, "Total:", total);
+      answer += total;
     }
-    appendFileSync("./src/day3/output2.txt", `Row Sum [${i + 1}]: ${rowSum}\n`);
-    console.log(`Row Sum [${i + 1}]: ${rowSum}`);
   }
 
-  console.log(`Sum of all the part numbers: ${answer}`);
+  console.log("Sum of all the part numbers:", answer);
 }
 
 main();
