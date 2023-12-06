@@ -4,6 +4,8 @@ class Card {
   public readonly id: number;
   public readonly winningNums: Set<string>;
   public readonly playingNums: string[];
+  public score: number = 0;
+  public copiesCreated: number = 0;
 
   constructor(
     id: number,
@@ -13,6 +15,21 @@ class Card {
     this.id = id;
     this.winningNums = winningNums;
     this.playingNums = playingNums;
+    this.calculateScore();
+  }
+
+  set setScore(score: number) {
+    this.score = score;
+  }
+
+  private calculateScore(): number {
+    for (let i = 0; i < this.playingNums.length; i++) {
+      const n = this.playingNums[i];
+      if (!this.winningNums.has(n)) continue;
+      this.score += 1;
+    }
+
+    return this.score;
   }
 }
 
@@ -41,31 +58,41 @@ function parseCard(line: string): Card {
   return new Card(id, winningNums, playingNums);
 }
 
-function calculateScore(card: Card): number {
-  let score = 0;
-  for (let i = 0; i < card.playingNums.length; i++) {
-    const n = card.playingNums[i];
-    if (!card.winningNums.has(n)) continue;
-    if (!score) score = 1;
-    else score *= 2;
+function calcCardCopies(
+  card: Card,
+  map: Record<number, Card>,
+  memo: Record<number, number> = {},
+): number {
+  if (!card.score) return 1;
+  if (memo[card.id]) return memo[card.id];
+  let total = 1;
+
+  for (let i = 1; i <= card.score; i++) {
+    const id = card.id + i;
+    const nextCard = map[id];
+    if (nextCard) total += calcCardCopies(nextCard, map, memo);
   }
 
-  return score;
+  memo[card.id] = total;
+  return total;
 }
 
 function main() {
   const lines = readFileLines("./src/day4/input.txt");
 
-  let totalScore = 0;
-  for (let i = 0; i < lines.length; i++) {
+  let totalCards = 0;
+  const cardMap: Record<number, Card> = {};
+  for (let i = lines.length - 1; i > -1; i--) {
     const card = parseCard(lines[i]);
-    const score = calculateScore(card);
-
-    console.log(`Card ${card.id} Score:`, score);
-    totalScore += score;
+    cardMap[card.id] = card;
   }
 
-  console.log("Total Score:", totalScore);
+  const memo: Record<number, number> = {};
+  for (const card of Object.values(cardMap)) {
+    totalCards += calcCardCopies(card, cardMap, memo);
+  }
+
+  console.log("Total Cards:", totalCards);
 }
 
 main();
