@@ -1,8 +1,5 @@
 import { readFileSync } from "node:fs";
-
-function isStringANumber(str: string): boolean {
-  return !!(str.length && !isNaN(Number(str)));
-}
+import { isStringANumber } from "../utils/validate";
 
 function isSymbol(char: string): boolean {
   return !!(isNaN(Number(char)) && char !== ".");

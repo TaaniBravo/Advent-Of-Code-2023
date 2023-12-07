@@ -1,4 +1,5 @@
 import { readFileLines } from "../utils/files";
+import { parseNumbers } from "../utils/parsing";
 
 class Card {
   public readonly id: number;
@@ -35,12 +36,6 @@ class Card {
 
 function parseWinningNumbers(line: string): Set<string> {
   return new Set(parseNumbers(line));
-}
-
-function parseNumbers(line: string): string[] {
-  const match = line.match(/\d+/g);
-  if (match) return match.map((val) => val);
-  return [];
 }
 
 function parseId(line: string): number {
