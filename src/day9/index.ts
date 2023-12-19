@@ -1,50 +1,11 @@
 import { readFileLines } from "../utils/files";
 
-// class HistoryList {
-//   public head: History | null = null;
-//   public tail: History | null = null;
-//
-//   append(history: History): void {
-//     if (!this.tail) {
-//       this.head = history;
-//       this.tail = history;
-//       return;
-//     }
-//
-//     const temp = this.tail;
-//     temp.next = history;
-//     this.tail = history;
-//   }
-//
-//   prepend(history: History): void {
-//     if (!this.head) {
-//       this.head = history;
-//       this.tail = history;
-//       return;
-//     }
-//
-//     const temp = this.head;
-//     history.next = temp;
-//     this.head = history;
-//   }
-// }
-
 class History {
   public readonly values: number[];
-  // public next: History | null = null;
-  // public prev: History | null = null;
 
   constructor(values: number[]) {
     this.values = values;
   }
-
-  // append(history: History): void {
-  //   this.next = history;
-  // }
-  //
-  // prepend(history: History): void {
-  //   this.prev = history;
-  // }
 }
 
 function parseHistory(line: string): History {
